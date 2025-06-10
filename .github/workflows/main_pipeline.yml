@@ -60,7 +60,7 @@ jobs:
           sleep 1
         done
         # Se após o loop ainda não estiver pronto, sai com erro
-        /usr/bin/pg_isready -h postgres -p 5432 -U ${{ secrets.DB_USER }} || exit 1
+        /usr/bin/pg_isready -h 127.0.0.1 -p 5432 -U ${{ secrets.DB_USER }} || exit 1
       env:
         PGPASSWORD: ${{ secrets.DB_PASSWORD }} # pg_isready precisa da senha como env var
 
