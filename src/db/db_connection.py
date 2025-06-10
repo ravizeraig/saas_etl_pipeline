@@ -1,30 +1,26 @@
 # src/db_connection.py
 import os
-import psycopg2
-import pymysql
-import sqlite3
-from dotenv import load_dotenv
 import logging
+import psycopg2
+from psycopg2 import OperationalError
+from dotenv import load_dotenv
+import sqlite3
 
+# Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
 
-# Setup do logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+# Configuração do logger (apenas para garantir que está funcionando aqui também)
+logger = logging.getLogger(__name__)
+if not logger.handlers:
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
-# src/db_connection.py (Trecho relevante)
+def get_connection():
+    db_type = os.getenv("DB_TYPE")
 
-def get_connection():  # db_type removido dos parametros
-    db_type = os.getenv("DB_TYPE")  # <--- Lendo do .env
-
-    if not db_type:
-        logging.error("Variável de ambiente 'DB_TYPE' não definida. Por favor, defina no seu .env.")
-        raise ValueError("DB_TYPE não configurado no .env")
-
-    logging.info(f"Conectando ao banco {db_type.upper()}...")  # <--- Log dinâmico com f-string
-
-    try:
-        if db_type == 'postgresql':
+    if db_type == "postgresql":
+        try:
+            logger.info("Tentando conectar ao banco POSTGRESQL...")
             conn = psycopg2.connect(
                 dbname=os.getenv("DB_NAME"),
                 user=os.getenv("DB_USER"),
@@ -32,29 +28,35 @@ def get_connection():  # db_type removido dos parametros
                 host=os.getenv("DB_HOST"),
                 port=os.getenv("DB_PORT")
             )
+            logger.info("Conexão com PostgreSQL estabelecida com sucesso.")
+            return conn
+        except OperationalError as e:
+            logger.error(f"Erro de conexão com PostgreSQL: {e}")
+            # Loga todos os detalhes da conexão que foram tentados (exceto a senha)
+            logger.error(f"Detalhes da conexão tentada: "
+                         f"DB_NAME={os.getenv('DB_NAME')}, "
+                         f"DB_USER={os.getenv('DB_USER')}, "
+                         f"DB_HOST={os.getenv('DB_HOST')}, "
+                         f"DB_PORT={os.getenv('DB_PORT')}")
+            # Re-lança a exceção para que o programa principal saiba que a conexão falhou
+            raise
+        except Exception as e:
+            logger.error(f"Ocorreu um erro inesperado ao conectar com PostgreSQL: {e}")
+            raise
+    elif db_type == "sqlite":
+        try:
+            sqlite_db_path = os.getenv("SQLITE_DB_PATH")
+            logger.info(f"Tentando conectar ao banco SQLite em: {sqlite_db_path}")
+            conn = sqlite3.connect(sqlite_db_path) # Assumindo que sqlite3 está importado
+            logger.info("Conexão com SQLite estabelecida com sucesso.")
+            return conn
+        except Exception as e:
+            logger.error(f"Erro ao conectar com SQLite: {e}")
+            logger.error(f"Caminho do DB SQLite tentado: {os.getenv('SQLITE_DB_PATH')}")
+            raise
+    else:
+        logger.error(f"Tipo de banco de dados não suportado: {db_type}")
+        raise ValueError(f"Tipo de banco de dados não suportado: {db_type}")
 
-        elif db_type == 'mysql':
-            conn = pymysql.connect(
-                host=os.getenv("DB_HOST"),
-                user=os.getenv("DB_USER"),
-                password=os.getenv("DB_PASSWORD"),
-                database=os.getenv("DB_NAME"),
-                port=int(os.getenv("DB_PORT"))
-            )
-
-        elif db_type == 'sqlite':
-            sqlite_path = os.getenv("SQLITE_DB_PATH")
-            if not sqlite_path:
-                logging.error(f"Variável de ambiente 'SQLITE_DB_PATH' não definida para DB_TYPE={db_type}.")
-                raise ValueError("SQLITE_DB_PATH não configurado no .env para DB_TYPE=sqlite")
-            conn = sqlite3.connect(sqlite_path)
-
-        else:
-            raise ValueError(f"Tipo de banco não suportado no DB_TYPE do .env: {db_type}")
-
-        logging.info("Conexão estabelecida com sucesso.")
-        return conn
-
-    except Exception as e:
-        logging.error(f"Erro ao conectar com o banco de dados ({db_type}): {e}")  # Log de erro também mais dinâmico
-        raise
+# Certifique-se de que sqlite3 esteja importado se você for usar a parte de SQLite
+# import sqlite3
