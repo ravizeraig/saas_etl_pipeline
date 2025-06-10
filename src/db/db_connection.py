@@ -57,6 +57,3 @@ def get_connection():
     else:
         logger.error(f"Tipo de banco de dados não suportado: {db_type}")
         raise ValueError(f"Tipo de banco de dados não suportado: {db_type}")
-
-# Certifique-se de que sqlite3 esteja importado se você for usar a parte de SQLite
-# import sqlite3
