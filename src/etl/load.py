@@ -6,6 +6,6 @@ def load_data(df):
     logger.info("Iniciando carga de dados via ETL...")
 
     db_loader = DBLoader()
-    db_loader.load_dataframe(df, table_name='saas_companies_clean')
+    db_loader.load_data(df, table_name='saas_companies_clean')
 
     logger.info("Carga de dados via ETL concluída.")
