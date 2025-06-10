@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py,cover
+*.cover
+.pytest_cache/
+.cache/
+
+# Virtual environment
+venv/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+
+# Database (caso use SQLite em dev)
+*.sqlite3
+
+# Test outputs
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+nosetests.xml
+test-results.xml
+
+# Miscellaneous
+*.bak
+*.swp
+*.tmp
